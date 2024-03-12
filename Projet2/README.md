@@ -1,21 +1,22 @@
 # C
 
+Fonctionnalités (à faire dans l’ordre):
+  Créer deux structures représentant la grille (Grid) et une case (Tile)
+  Créer une fonction permettant d’initialiser la grille et chaque case 
+  Créer une fonction permettant de placer les mines de manière aléatoire sur la grille
+  Créer une fonction permettant d’afficher la grille 
+  Créer une fonction demandant à l’utilisateur de rentrer deux coordonnées (saisie robuste)
+  Créer une fonction permettant de mettre à jour la grille en révélant la case demandée par le joueur. Cette fonction révélera automatiquement les cases autours tant qu’elles n’auront pas de mines autour d’elles.
+  Trouver une méthode pour détecter si la partie est gagnée.
+  Mettre en place la boucle de jeu
+
 Initialisation du jeu :
-  Générer un nombre aléatoire entre 1 et 100.
+  Créer une grille de jeu de taille N x N 
 
 Boucle de jeu :
-  Demander au joueur de deviner le nombre.
-  Afficher un message de victoire si le joueur devine le nombre.
-  Sinon répondre “plus” ou “moins” pour guider le joueur.
+  Afficher la grille
+  Demander au joueur de choisir une case à révéler
+  Mettre à jour la grille
+  Vérifier si la partie est gagnée ou perdu
 
-Fonctionnalités supplémentaires :
-  Ajouter un nombre d'essais et afficher un message de défaite si le joueur le dépasse.
-  Proposer au joueur de fixer les bornes du nombre aléatoire en début de partie.
-  Proposer au joueur de recommencer une partie (saisir une des lettres suivantes: “y”, “n”, “Y”, “N”).
-  Faire des fonctions génériques pour une saisie robuste:
-  - saisir un entier
-  - saisir un entier entre une borne min et max
-  - saisir un mot qui appartient à une liste de mot valide
-  Utiliser ces fonctions pour demander à l’utilisateur de choisir les bornes de départ, de deviner le nombre mystère, et de recommencer une partie
-  Lorsque la partie est terminée, afficher la liste de tous les nombres mystères devinés depuis le lancement du programme.
 
