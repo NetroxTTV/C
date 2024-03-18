@@ -92,6 +92,7 @@ Cell** createBoard()
 
 
 void showBoard(Cell** board, int choiceCellX, int choiceCellY) {
+    int defeat = 0;
     for (int i = 0; i < BOARD_LENGTH; i++) {
         for (int j = 0; j < BOARD_LENGTH; j++) {
             if (i == choiceCellX && j == choiceCellY) {
@@ -106,6 +107,8 @@ void showBoard(Cell** board, int choiceCellX, int choiceCellY) {
                 if (board[i][j].isRevealed) {
                     if (board[i][j].isBomb) {
                         printf(" %-5c ",'B');
+                        defeat = 1;
+
                     } else {
                         printf(" %-5c ",'.');
                     }
@@ -117,8 +120,6 @@ void showBoard(Cell** board, int choiceCellX, int choiceCellY) {
         printf("\n");
     }
 }
-
-
 
 int main()
 {
@@ -132,7 +133,6 @@ int main()
     showBoard(board, choiceCellX, choiceCellY);
 
     while(start == 0){
-            printf("Pendant");
         int errorCase = 0;
         while(errorCase == 0){
                 choiceCellX = ask_int("Enter X coordinate (0-9): ", 0, BOARD_LENGTH);
