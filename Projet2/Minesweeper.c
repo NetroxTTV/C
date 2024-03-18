@@ -172,6 +172,6 @@ int main()
         }
     }
 
-    printf("Vous avez perdu !");
+    printf("You lose !");
     return 0;
 }
