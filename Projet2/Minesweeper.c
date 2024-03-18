@@ -6,7 +6,7 @@
 typedef struct Cell { //struct of cells
     int isRevealed;
     int isBomb;
-    int isFlag;
+    int bombCount;
 }Cell;
 
 typedef struct Grid { //struc of grid
@@ -19,50 +19,53 @@ int ask_int(const char* prompt, int min, int max) {
     int value;
     char ch;
 
-    // Print the prompt message
+
     printf("%s", prompt);
 
-    // Loop until a valid integer within the valid range is entered
+
     while (1) {
-        // Attempt to read an integer from input
+
         if (scanf_s("%d%c", &value, &ch, 1) == 2 && ch == '\n') {
-            // Check if the input is within the valid range
+
             if (value >= min && value < max) {
-                // If the input is a valid integer within the valid range, break out of the loop
+
                 break;
             }
         }
-        // If the input is not a valid integer or not within the valid range, print an error message
+
         printf("Invalid input. Please enter a number between %d and %d.\n", min, max - 1);
 
-        // Consume the invalid input
-        while ((ch = getchar()) != '\n' && ch != EOF) {}
 
-        // Print the prompt message again
+        while ((ch = getchar()) != '\n') {}
+
+
         printf("%s", prompt);
     }
 
     return value;
 }
 
+//#TODO Better algo, uniform & no random complexity 
+
 void bombPlacement(Cell** board) {
     int numBombs = 0;
     while (numBombs < BOARD_LENGTH) {
-        srand(time(NULL));
         int x = rand() % BOARD_LENGTH;
         int y = rand() % BOARD_LENGTH;
-        if (!board[x][y].isBomb) {
-            board[x][y].isBomb = 1;
-            numBombs++;
+        if (board[x][y].isBomb == 0) {
+            if (!board[x][y].isBomb) {
+                board[x][y].isBomb = 1;
+                numBombs++;
+            }
         }
+
     }
-    printf("\n%d\n", numBombs);
+    printf("\nIl y a %d bombes !\n", numBombs);
 }
 
 
 Cell** createBoard()
 {
-    //#TODO function
     Grid grid;
     grid.x = BOARD_LENGTH;
     grid.y = BOARD_LENGTH;
@@ -83,37 +86,41 @@ Cell** createBoard()
         for (int j = 0; j < grid.y; j++) {
             grid.pCells[i][j].isBomb = 0;
             grid.pCells[i][j].isRevealed = 0;
-            grid.pCells[i][j].isFlag = 0;
         }
     }
 
     return grid.pCells;
 }
 
-
 void showBoard(Cell** board, int choiceCellX, int choiceCellY) {
-    int defeat = 0;
     for (int i = 0; i < BOARD_LENGTH; i++) {
         for (int j = 0; j < BOARD_LENGTH; j++) {
             if (i == choiceCellX && j == choiceCellY) {
-                // Reveal the selected cell
                 board[i][j].isRevealed = 1;
                 if (board[i][j].isBomb) {
-                    printf(" %-5c ",'B');
-                } else {
-                    printf(" %-5c ",'.');
+                    printf(" %-1c ", 'B');
                 }
-            } else {
+                else {
+                    printf(" %-1c ", '0');
+                }
+            }
+            else {
                 if (board[i][j].isRevealed) {
                     if (board[i][j].isBomb) {
-                        printf(" %-5c ",'B');
-                        defeat = 1;
-
-                    } else {
-                        printf(" %-5c ",'.');
+                        printf(" %-1c ", 'B');
                     }
-                } else {
-                    printf(" %-5c ", '*');
+                    else {
+                        
+                        if (board[i - 1][j - 1].isBomb || board[i - 1][j].isBomb || board[i - 1][j + 1].isBomb || board[i][j - 1].isBomb || board[i][j + 1].isBomb || board[i + 1][j + 1].isBomb || board[i + 1][j].isBomb || board[i + 1][j - 1].isBomb) {
+                            printf(" %-1c ", '1');
+                        }
+                        else {
+                            printf(" %-1c ", '0');
+                        }
+                    }
+                }
+                else {
+                    printf(" %-1c ", '*');
                 }
             }
         }
@@ -121,33 +128,50 @@ void showBoard(Cell** board, int choiceCellX, int choiceCellY) {
     }
 }
 
+void ask_Coord(Cell** board, int* choiceCellX, int* choiceCellY) {
+    int errorCase = 0;
+    while (errorCase == 0) {
+        *choiceCellX = ask_int("Enter X coordinate (0-9): ", 0, BOARD_LENGTH);
+        *choiceCellY = ask_int("Enter Y coordinate (0-9): ", 0, BOARD_LENGTH);
+
+        if (*choiceCellX >= 0 && *choiceCellX < BOARD_LENGTH && *choiceCellY >= 0 && *choiceCellY < BOARD_LENGTH) {
+            if (board[*choiceCellX][*choiceCellY].isRevealed == 0) {
+                errorCase = 1;
+            }
+            else {
+                printf("Please enter the coordinates of a cell that is not revealed!\n");
+            }
+        }
+        else {
+            printf("Invalid coordinate. Please enter a number between 0 and %d.\n", BOARD_LENGTH - 1);
+        }
+    }
+}
+
+void firstStrike() {
+
+}
+
 int main()
 {
-
+    srand(time(NULL));
     Grid grid;
     int start = 0;
     int choiceCellX;
     int choiceCellY;
     Cell** board = createBoard();
+    ask_Coord(board, &choiceCellX, &choiceCellY);
     bombPlacement(board);
     showBoard(board, choiceCellX, choiceCellY);
 
-    while(start == 0){
-        int errorCase = 0;
-        while(errorCase == 0){
-                choiceCellX = ask_int("Enter X coordinate (0-9): ", 0, BOARD_LENGTH);
-                choiceCellY = ask_int("Enter Y coordinate (0-9): ", 0, BOARD_LENGTH);
-
-            if (choiceCellX >= 0 && choiceCellX < BOARD_LENGTH && choiceCellY >= 0 && choiceCellY < BOARD_LENGTH) {
-                errorCase = 1;
-            }else {
-                // If the input is not a valid coordinate, print an error message
-                printf("Invalid coordinate. Please enter a number between 0 and %d.\n", BOARD_LENGTH - 1);
-            }
-        }
+    while (start == 0) {
+        ask_Coord(board, &choiceCellX, &choiceCellY);
         showBoard(board, choiceCellX, choiceCellY);
+        if (board[choiceCellX][choiceCellY].isRevealed == 1 && board[choiceCellX][choiceCellY].isBomb == 1) {
+            start = 1;
+        }
     }
 
-
+    printf("Vous avez perdu !");
     return 0;
 }
