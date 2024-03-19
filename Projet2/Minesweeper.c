@@ -151,8 +151,8 @@ void showBoard(Cell** board, int choiceCellX, int choiceCellY) {
 void ask_Coord(Cell** board, int* choiceCellX, int* choiceCellY) {
     int errorCase = 0;
     while (errorCase == 0) {
-        *choiceCellX = ask_int("Enter X coordinate (0-9): ", 0, BOARD_LENGTH);
-        *choiceCellY = ask_int("Enter Y coordinate (0-9): ", 0, BOARD_LENGTH);
+        *choiceCellX = ask_int("Enter X coordinate : ", 0, BOARD_LENGTH);
+        *choiceCellY = ask_int("Enter Y coordinate : ", 0, BOARD_LENGTH);
 
         if (board[*choiceCellX][*choiceCellY].isRevealed == 0) {
             errorCase = 1;
