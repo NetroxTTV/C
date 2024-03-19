@@ -45,11 +45,11 @@ int ask_int(const char* prompt, int min, int max) {
     return value;
 }
 
-//#TODO Better algo, uniform & no random complexity 
+//#TODO Better algo, uniform & no random complexity
 
 void bombPlacement(Cell** board) {
     int numBombs = 0;
-    while (numBombs < BOARD_LENGTH) {
+    while (numBombs < (BOARD_LENGTH * BOARD_LENGTH) / 10) {
         int x = rand() % BOARD_LENGTH;
         int y = rand() % BOARD_LENGTH;
         if (board[x][y].isBomb == 0) {
@@ -92,36 +92,64 @@ Cell** createBoard()
     return grid.pCells;
 }
 
+void revealAdjacentCells(Cell** board, int x, int y) {
+    for (int i = x - 1; i <= x + 1; i++) {
+        for (int j = y - 1; j <= y + 1; j++) {
+            if (i >= 0 && i < BOARD_LENGTH && j >= 0 && j < BOARD_LENGTH) {
+                if (!board[i][j].isBomb && !board[i][j].isRevealed) {
+                    board[i][j].isRevealed = 1;
+                    if (countBombsAround(board, i, j) == 0) {
+                        revealAdjacentCells(board, i, j);
+                    }
+                }
+            }
+        }
+    }
+}
+
+int countBombsAround(Cell** board, int x, int y) {
+    int bombCount = 0;
+
+    for (int i = x - 1; i <= x + 1; i++) {
+        for (int j = y - 1; j <= y + 1; j++) {
+            if (i >= 0 && i < BOARD_LENGTH && j >= 0 && j < BOARD_LENGTH) {
+                if (board[i][j].isBomb) {
+                    bombCount++;
+                    
+                }
+            }
+        }
+    }
+
+    return bombCount;
+}
+
+
+
 void showBoard(Cell** board, int choiceCellX, int choiceCellY) {
-    for (int i = 0; i < BOARD_LENGTH; i++) {
-        for (int j = 0; j < BOARD_LENGTH; j++) {
-            if (i == choiceCellX && j == choiceCellY) {
-                board[i][j].isRevealed = 1;
+    int bombCount; // Declare bombCount here
+    
+    for (int i = 0; i < BOARD_LENGTH; i++) { // Init i loop
+        for (int j = 0; j < BOARD_LENGTH; j++) { // Init j loop
+            bombCount = countBombsAround(board, i, j); // Init bombCount
+            if (i == choiceCellX && j == choiceCellY) { // If i and j = player input for x and y
+                board[i][j].isRevealed = 1; // If player input cell is reveal
+                if (!board[i][j].isBomb) { // If player input cell is not a bomb
+                    if (bombCount == 0) { // 
+                        revealAdjacentCells(board, i, j);
+                    }
+                }
+            }
+            if (board[i][j].isRevealed) {
                 if (board[i][j].isBomb) {
                     printf(" %-1c ", 'B');
                 }
                 else {
-                    printf(" %-1c ", '0');
+                    printf(" %-1d ", bombCount);
                 }
             }
             else {
-                if (board[i][j].isRevealed) {
-                    if (board[i][j].isBomb) {
-                        printf(" %-1c ", 'B');
-                    }
-                    else {
-                        
-                        if (board[i - 1][j - 1].isBomb || board[i - 1][j].isBomb || board[i - 1][j + 1].isBomb || board[i][j - 1].isBomb || board[i][j + 1].isBomb || board[i + 1][j + 1].isBomb || board[i + 1][j].isBomb || board[i + 1][j - 1].isBomb) {
-                            printf(" %-1c ", '1');
-                        }
-                        else {
-                            printf(" %-1c ", '0');
-                        }
-                    }
-                }
-                else {
-                    printf(" %-1c ", '*');
-                }
+                printf(" %-1c ", '*');
             }
         }
         printf("\n");
@@ -148,18 +176,37 @@ void ask_Coord(Cell** board, int* choiceCellX, int* choiceCellY) {
     }
 }
 
-void firstStrike() {
+int checkWin(Cell** board, int numBombs) {
+    int numRevealedCells = 0;
+    int i, j;
 
+    for (i = 0; i < BOARD_LENGTH; i++) {
+        for (j = 0; j < BOARD_LENGTH; j++) {
+            if (board[i][j].isRevealed) {
+                numRevealedCells++;
+            }
+        }
+    }
+
+    if (numRevealedCells == BOARD_LENGTH * BOARD_LENGTH - numBombs) {
+        return 1;
+    }
+
+    return 0;
 }
 
 int main()
 {
     srand(time(NULL));
     Grid grid;
+    int win = 0;
     int start = 0;
     int choiceCellX;
     int choiceCellY;
     Cell** board = createBoard();
+
+    // 1er coup ici
+
     ask_Coord(board, &choiceCellX, &choiceCellY);
     bombPlacement(board);
     showBoard(board, choiceCellX, choiceCellY);
@@ -167,11 +214,20 @@ int main()
     while (start == 0) {
         ask_Coord(board, &choiceCellX, &choiceCellY);
         showBoard(board, choiceCellX, choiceCellY);
+        checkWin(board, (BOARD_LENGTH * BOARD_LENGTH) / 4);
         if (board[choiceCellX][choiceCellY].isRevealed == 1 && board[choiceCellX][choiceCellY].isBomb == 1) {
             start = 1;
         }
+        if (checkWin(board, (BOARD_LENGTH * BOARD_LENGTH) / 10 == 1)) {
+            win = 1;
+            start = 1;
+        }
     }
-
-    printf("You lose !");
+    if (win == 0) {
+        printf("You lose !");
+    }
+    else {
+        printf("You win !");
+    }
     return 0;
 }
