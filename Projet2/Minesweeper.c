@@ -12,7 +12,7 @@ typedef struct Cell { // Structure representing cells on the board
 typedef struct Grid { // Structure representing the grid
     int x; // Width of the grid
     int y; // Height of the grid
-    Cell** pCells; // Pointer to the grid of cells
+    Cell** pCells; // Pointer to Cell
 } Grid;
 
 // Function to prompt the user for an integer input within a given range
