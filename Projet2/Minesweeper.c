@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#define BOARD_LENGTH 30
+#define BOARD_LENGTH 10
 
 typedef struct Cell { // Structure representing cells on the board
     int isRevealed; // Indicating if the cell is revealed
@@ -37,7 +37,7 @@ int ask_int(const char* prompt, int min, int max) {
 // Function to place bombs on the board, ensuring the first chosen cell and its neighbors are non-bomb cell
 void bombPlacement(Cell** board, int firstMoveX, int firstMoveY) {
     int numBombs = 0;
-    while (numBombs < (BOARD_LENGTH * BOARD_LENGTH) / 10) {
+    while (numBombs < (BOARD_LENGTH * BOARD_LENGTH) / 10 + 1) {
         int x = rand() % BOARD_LENGTH;
         int y = rand() % BOARD_LENGTH;
         if (board[x][y].isBomb == 0) {
@@ -149,8 +149,8 @@ void showBoard(Cell** board, int choiceCellX, int choiceCellY) {
 void ask_Coord(Cell** board, int* choiceCellX, int* choiceCellY) {
     int errorCase = 0;
     while (errorCase == 0) {
-        *choiceCellX = ask_int("Enter X coordinate (0-9): ", 0, BOARD_LENGTH);
-        *choiceCellY = ask_int("Enter Y coordinate (0-9): ", 0, BOARD_LENGTH);
+        *choiceCellX = ask_int("Enter X coordinate : ", 0, BOARD_LENGTH);
+        *choiceCellY = ask_int("Enter Y coordinate : ", 0, BOARD_LENGTH);
 
         if (*choiceCellX >= 0 && *choiceCellX < BOARD_LENGTH && *choiceCellY >= 0 && *choiceCellY < BOARD_LENGTH) {
             if (board[*choiceCellX][*choiceCellY].isRevealed == 0) {
@@ -217,6 +217,7 @@ int main() {
     }
 
     // Print game result
+    showBoard(board, choiceCellX, choiceCellY);
     if (win == 0) {
         printf("You lose !");
     }
