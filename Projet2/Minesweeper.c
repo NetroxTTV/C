@@ -37,16 +37,37 @@ int ask_int(const char* prompt, int min, int max) {
 // Function to place bombs on the board, ensuring the first chosen cell and its neighbors are non-bomb cell
 void bombPlacement(Cell** board, int firstMoveX, int firstMoveY) {
     int numBombs = 0;
-    while (numBombs < (BOARD_LENGTH * BOARD_LENGTH) / 10 + 1) {
-        int x = rand() % BOARD_LENGTH;
-        int y = rand() % BOARD_LENGTH;
-        if (board[x][y].isBomb == 0) {
-            if (abs(firstMoveX - x) > 1 || abs(firstMoveY - y) > 1) {// Ensure that the first chosen cell and its neighbors are not bombs
-                board[x][y].isBomb = 1;
-                numBombs++;
+    int totalCells = BOARD_LENGTH * BOARD_LENGTH;
+    int* unbombedCells = (int*)malloc(totalCells * sizeof(int));
+    int count = 0;
+
+    // Initialize the list of unbombed cells
+    for (int i = 0; i < BOARD_LENGTH; i++) {
+        for (int j = 0; j < BOARD_LENGTH; j++) {
+            if (board[i][j].isBomb == 0) {
+                unbombedCells[count] = i * BOARD_LENGTH + j;
+                count++;
             }
         }
     }
+
+    while (numBombs < (BOARD_LENGTH * BOARD_LENGTH) / 10) {
+        int randomIndex = rand() % count;
+        int cellIndex = unbombedCells[randomIndex];
+        int x = cellIndex / BOARD_LENGTH;
+        int y = cellIndex % BOARD_LENGTH;
+
+        if (abs(firstMoveX - x) > 1 || abs(firstMoveY - y) > 1) {
+            board[x][y].isBomb = 1;
+            numBombs++;
+        }
+
+        // Remove the bombarded cell from the list of unbombed cells
+        unbombedCells[randomIndex] = unbombedCells[count - 1];
+        count--;
+    }
+
+    free(unbombedCells);
     printf("\nThere are %d bombs!\n", numBombs);
 }
 
