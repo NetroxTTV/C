@@ -52,8 +52,8 @@ void bombPlacement(Cell** board, int firstMoveX, int firstMoveY) {
     }
 
     while (numBombs < (BOARD_LENGTH * BOARD_LENGTH) / 10) {
-        int randomIndex = rand() % count;
-        int cellIndex = unbombedCells[randomIndex];
+        int randomCount = rand() % count;
+        int cellIndex = unbombedCells[randomCount];
         int x = cellIndex / BOARD_LENGTH;
         int y = cellIndex % BOARD_LENGTH;
 
@@ -62,8 +62,8 @@ void bombPlacement(Cell** board, int firstMoveX, int firstMoveY) {
             numBombs++;
         }
 
-        // Remove the bombarded cell from the list of unbombed cells
-        unbombedCells[randomIndex] = unbombedCells[count - 1];
+        // Remove the bomb cell from the list of unbombed cells
+        unbombedCells[randomCount] = unbombedCells[count - 1];
         count--;
     }
 
