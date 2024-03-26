@@ -272,10 +272,10 @@ int main() {
     showBoard(board, choiceCellX, choiceCellY);
 
     if (win == 0) {
-        printf("You lose !");
+        printf("\033[1;31m \n You lose !\n\033[0m");
     }
     else {
-        printf("You win !");
+        printf("\033[1;32m \n You win !\n\033[0m");
     }
 
     freeBoard(board); // Free memory allocated for the board
