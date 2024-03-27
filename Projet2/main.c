@@ -1,7 +1,12 @@
+                                                                 /* Minesweeper by Duperray Lucas and Rosselet Thomas
+                                                                               V 0.17 on 03/27/24 
+                                                                    Last update : 
+                                                                               Adjusting revealAdjacentCells function */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#define BOARD_LENGTH 10
+#define BOARD_LENGTH 25
 
 typedef struct Cell { // Structure representing cells on the board
     int isRevealed; // Indicating if the cell is revealed
@@ -160,6 +165,7 @@ void colorGrid(int bombC) {
 void showBoard(Cell** board, int choiceCellX, int choiceCellY) {
     int bombCount;
     for (int i = 0; i < BOARD_LENGTH; i++) {
+        printf("%-2d | ", i);
         for (int j = 0; j < BOARD_LENGTH; j++) {
             if (i == choiceCellX && j == choiceCellY) {
                 if (board[i][j].isBomb) {
