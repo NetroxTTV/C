@@ -1,8 +1,8 @@
                                                                  /* Minesweeper by Duperray Lucas and Rosselet Thomas
-                                                                               V 0.17 on 03/27/24 
-                                                                    Last update : 
-                                                                               Adjusting revealAdjacentCells function */
-
+                                                                               V 0.18 on 03/28/24
+                                                                    Last update :
+                                                                               Adding flags and the command
+                                                                               Adding a restart method*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -12,7 +12,7 @@ typedef struct Cell { // Structure representing cells on the board
     int isRevealed; // Indicating if the cell is revealed
     int isBomb; // Indicating if the cell contains a bomb
     int bombCount; // Count bombs around the cell
-    int isFlag;
+    int isFlag; // Indicating if the cell has a flag
 } Cell;
 
 typedef struct Grid { // Structure representing the grid
@@ -27,7 +27,7 @@ int ask(const char* prompt, int min, int max) {
     char ch;
     printf("%s", prompt);
     while (1) {
-        if (scanf_s("%d%c", &value, &ch, 1) == 2 && ch == '\n') {
+        if (scanf("%d%c", &value, &ch) == 2 && ch == '\n') {
             if (value >= min && value < max) {
                 break;
             }
@@ -108,6 +108,7 @@ Cell** createBoard()
             grid.pCells[i][j].isBomb = 0;
             grid.pCells[i][j].isRevealed = 0;
             grid.pCells[i][j].bombCount = 0;
+            grid.pCells[i][j].isFlag = 0; // Initialize flags
         }
     }
 
@@ -118,12 +119,12 @@ Cell** createBoard()
 void revealAdjacentCells(Cell** board, int x, int y) {
 
     board[x][y].isRevealed = 1;
-    
+
     if (board[x][y].bombCount != 0)
     {
         return;
     }
-    
+
     for (int i = x - 1; i <= x + 1; i++) {
         for (int j = y - 1; j <= y + 1; j++) {
             if (i >= 0 && i < BOARD_LENGTH && j >= 0 && j < BOARD_LENGTH) {
@@ -135,17 +136,20 @@ void revealAdjacentCells(Cell** board, int x, int y) {
     }
 }
 
-//Place flag
-void flagPlacement(Cell** board, int x, int y){
-    if (board[x][y].isFlag == 0){
-        board[x][y].isFlag = "F";
-    }
-    else{
-        printf("There's already a Flag Here.");
+// Function to place or remove flags
+void flagPlacement(Cell** board, int x, int y) {
+    if (!board[x][y].isRevealed) { // Check if the cell is not revealed
+        if (!board[x][y].isFlag) {
+            board[x][y].isFlag = 1; // Place flag
+        } else {
+            board[x][y].isFlag = 0; // Remove flag
+        }
+    } else {
+        printf("Cannot place flag on revealed cell.\n");
     }
 }
 
-//Set color to numbers
+// Set color to numbers
 void colorGrid(int bombC) {
     if (bombC == 0) {
         printf("\033[1;37m %-2d \033[0m", bombC);
@@ -167,13 +171,18 @@ void showBoard(Cell** board, int choiceCellX, int choiceCellY) {
     for (int i = 0; i < BOARD_LENGTH; i++) {
         printf("%-2d | ", i);
         for (int j = 0; j < BOARD_LENGTH; j++) {
-            if (i == choiceCellX && j == choiceCellY) {
-                if (board[i][j].isBomb) {
+            if (board[i][j].isFlag) { // Print flag
+                printf(" F  ");
+            } else if (i == choiceCellX && j == choiceCellY) {
+                if (board[i][j].isBomb && !board[i][j].isRevealed) {
+                    printf(" %-2c ", '*'); // Cell remains an asterisk if not revealed
+                } else if (board[i][j].isBomb && board[i][j].isRevealed) {
                     printf("\033[1;35m %-2c \033[0m", 'B');
-                }
-                else {
+                } else if (board[i][j].isRevealed) { // Check if the cell is revealed
                     bombCount = board[i][j].bombCount;
                     colorGrid(bombCount);
+                } else {
+                    printf(" %-2c ", '*'); // Cell remains an asterisk if not revealed
                 }
             }
             else {
@@ -195,7 +204,7 @@ void showBoard(Cell** board, int choiceCellX, int choiceCellY) {
     }
 }
 
-// Function to ask the user for coordinates of a cell to reveal
+// Function to ask the user for coordinates of a cell to reveal or place/remove flag
 void askCoord(Cell** board, int* choiceCellX, int* choiceCellY) {
     int errorCase = 0;
     while (errorCase == 0) {
@@ -203,14 +212,8 @@ void askCoord(Cell** board, int* choiceCellX, int* choiceCellY) {
         *choiceCellY = ask("Enter Y coordinate : ", 0, BOARD_LENGTH);
 
         if (*choiceCellX >= 0 && *choiceCellX < BOARD_LENGTH && *choiceCellY >= 0 && *choiceCellY < BOARD_LENGTH) {
-            if (board[*choiceCellX][*choiceCellY].isRevealed == 0) {
-                errorCase = 1;
-            }
-            else {
-                printf("Please enter the coordinates of a cell that is not revealed!\n");
-            }
+            errorCase = 1;
         }
-
         else {
             printf("Invalid coordinate. Please enter a number between 0 and %d.\n", BOARD_LENGTH - 1);
         }
@@ -218,15 +221,21 @@ void askCoord(Cell** board, int* choiceCellX, int* choiceCellY) {
 }
 
 // Function to check if the game is won
-int checkWin(Cell** board) {// Returns 1 if all non-bomb cells have been revealed, otherwise returns 0
+int checkWin(Cell** board) {
     for (int i = 0; i < BOARD_LENGTH; i++) {
         for (int j = 0; j < BOARD_LENGTH; j++) {
-            if (!board[i][j].isBomb && !board[i][j].isRevealed) {
-                return 0; // There is any unrevealed non-bomb cell
+            if (board[i][j].isBomb) { // Check if the cell is a bomb
+                if (!board[i][j].isFlag || board[i][j].isRevealed) { // Check if bomb is not flagged or revealed
+                    return 0; // Game is not won
+                }
+            } else { // Check if non-bomb cell is not revealed
+                if (!board[i][j].isRevealed) {
+                    return 0; // Game is not won
+                }
             }
         }
     }
-    return 1; // All non-bomb cells have been revealed
+    return 1; // All conditions met, game is won
 }
 
 // Function to free memory allocated
@@ -247,49 +256,72 @@ void revealGrid(Cell** board) {
 
 int main() {
     srand(time(NULL)); // Seed for random number generation
-    Grid grid;
-    int win = 0;
-    int start = 0;
-    int bombCount = 0;
-    int choiceCellX;
-    int choiceCellY;
-    Cell** board = createBoard(); // Create the game board
-    askCoord(board, &choiceCellX, &choiceCellY); // Ask the user for the first cell to reveal
-    bombPlacement(board, choiceCellX, choiceCellY, bombCount); // Place bombs on the board
-    revealAdjacentCells(board, choiceCellX, choiceCellY); // Reveal adjacent cells to the first cell
-    showBoard(board, choiceCellX, choiceCellY); // Show the board
+    int playAgain = 1;
 
-    // Main game loop
-    while (start == 0) {
-        askCoord(board, &choiceCellX, &choiceCellY); // Ask the user for the next cell to reveal
-        if (board[choiceCellX][choiceCellY].isBomb) { // Check if the cell contains a bomb
-            start = 1; // End the game if the cell is a bomb
-            win = 0;
-            break;
+    while (playAgain) {
+        Grid grid;
+        int win = 0;
+        int start = 0;
+        int bombCount = 0;
+        int choiceCellX;
+        int choiceCellY;
+        Cell** board = createBoard(); // Create the game board
+        askCoord(board, &choiceCellX, &choiceCellY); // Ask the user for the first cell to reveal
+        bombPlacement(board, choiceCellX, choiceCellY, bombCount); // Place bombs on the board
+        revealAdjacentCells(board, choiceCellX, choiceCellY); // Reveal adjacent cells to the first cell
+        showBoard(board, choiceCellX, choiceCellY); // Show the board
+
+        // Main game loop
+        while (start == 0) {
+            char action;
+            printf("Enter 'R' to reveal, 'F' to place/remove flag: ");
+            scanf(" %c", &action);
+            if (action == 'R' || action == 'r') {
+                askCoord(board, &choiceCellX, &choiceCellY); // Ask the user for the next cell to reveal
+                if (board[choiceCellX][choiceCellY].isBomb) { // Check if the cell contains a bomb
+                    start = 1; // End the game if the cell is a bomb
+                    win = 0;
+                    break;
+                }
+                revealAdjacentCells(board, choiceCellX, choiceCellY); // Reveal adjacent cells to the chosen cell
+                showBoard(board, choiceCellX, choiceCellY); // Updated board
+                win = checkWin(board); // Check if the game is won
+                if (win) { // If all conditions met, the game is won
+                    start = 1; // End the game
+                }
+            } else if (action == 'F' || action == 'f') {
+                askCoord(board, &choiceCellX, &choiceCellY); // Ask the user for the next cell to place/remove flag
+                flagPlacement(board, choiceCellX, choiceCellY); // Place or remove flag
+                showBoard(board, choiceCellX, choiceCellY); // Updated board
+                win = checkWin(board); // Check if the game is won
+                if (win) { // If all conditions met, the game is won
+                    start = 1; // End the game
+                }
+            } else {
+                printf("Invalid action. Please enter 'R' or 'F'.\n");
+            }
         }
-        revealAdjacentCells(board, choiceCellX, choiceCellY); // Reveal adjacent cells to the chosen cell
-        showBoard(board, choiceCellX, choiceCellY); // Updated board
-        checkWin(board); // Check if the game is won
-        if (checkWin(board) == 1) { // If all non-bomb cells are revealed, the game is won
-            win = 1;
-            start = 1; // End the game
+
+        // Print game result
+        printf("\n");
+
+        revealGrid(board);
+
+        showBoard(board, choiceCellX, choiceCellY);
+
+        if (win == 0) {
+            printf("\033[1;31m \n You lose !\n\033[0m");
         }
+        else {
+            printf("\033[1;32m \n You win !\n\033[0m");
+        }
+
+        freeBoard(board); // Free memory allocated for the board
+
+        // Ask if the player wants to play again
+        printf("Do you want to play again? (1 for yes, 0 for no): ");
+        scanf("%d", &playAgain);
     }
 
-    // Print game result
-    printf("\n");
-
-    revealGrid(board);
-
-    showBoard(board, choiceCellX, choiceCellY);
-
-    if (win == 0) {
-        printf("\033[1;31m \n You lose !\n\033[0m");
-    }
-    else {
-        printf("\033[1;32m \n You win !\n\033[0m");
-    }
-
-    freeBoard(board); // Free memory allocated for the board
     return 0;
 }
